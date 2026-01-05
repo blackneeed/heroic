@@ -13,10 +13,10 @@ $(BUILD)/floppy.img: $(BUILD)/stage1.bin $(BUILD)/stage2.bin
 	mcopy -i $(BUILD)/floppy.img $(BUILD)/stage2.bin "::stage2.bin"
 	cp $(BUILD)/floppy.img floppy.img
 
-$(BUILD)/stage1.bin: $(SRC)/stage1.asm
+$(BUILD)/stage1.bin: $(SRC)/bootloader/stage1.asm
 	mkdir -p $(BUILD)
-	nasm -f bin $(SRC)/stage1.asm -o $(BUILD)/stage1.bin
+	nasm -f bin $(SRC)/bootloader/stage1.asm -o $(BUILD)/stage1.bin
 
-$(BUILD)/stage2.bin: $(SRC)/stage2.asm
+$(BUILD)/stage2.bin: $(SRC)/bootloader/stage2.asm
 	mkdir -p $(BUILD)
-	nasm -f bin $(SRC)/stage2.asm -o $(BUILD)/stage2.bin
+	nasm -f bin $(SRC)/bootloader/stage2.asm -o $(BUILD)/stage2.bin
