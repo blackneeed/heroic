@@ -1,6 +1,6 @@
-[org 0x7e00]
 [bits 16]
 
+global stage2_main
 stage2_main:
     ; switch to pm32
 

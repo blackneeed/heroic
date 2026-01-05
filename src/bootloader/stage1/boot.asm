@@ -118,7 +118,7 @@ main:
 
     pop cx
 
-    mov bx, 0x7e00 ; loading it there!
+    mov bx, 0x8000 ; loading it there!
     .read_file_loop:
     mov ax, cx
     sub ax, 2
@@ -187,7 +187,7 @@ main:
     jmp .read_file_loop
     .file_read:
 
-    jmp 0x7e00
+    jmp 0x8000
 
 print_string:
     mov ah, 0x0e
