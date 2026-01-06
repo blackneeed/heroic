@@ -5,6 +5,9 @@ SRC=src
 STAGE2_ASM_SOURCES=$(shell find $(SRC)/bootloader/stage2 -name '*.asm')
 STAGE2_ASM_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.asm, $(OBJ)/bootloader/stage2/%.asm.o, $(STAGE2_ASM_SOURCES))
 
+STAGE2_C_SOURCES=$(shell find $(SRC)/bootloader/stage2 -name '*.c')
+STAGE2_C_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.c, $(OBJ)/bootloader/stage2/%.c.o, $(STAGE2_C_SOURCES))
+
 .PHONY: run
 run: $(BUILD)/floppy.img
 	qemu-system-x86_64 -fda $(BUILD)/floppy.img
@@ -23,8 +26,12 @@ $(BUILD)/bootloader/stage1/boot.bin: $(SRC)/bootloader/stage1/boot.asm
 
 $(OBJ)/bootloader/stage2/%.asm.o: $(SRC)/bootloader/stage2/%.asm
 	mkdir -p $(shell dirname '$@')
-	nasm -f elf64 -o $@ $<
+	nasm -f elf64 -o "$@" "$<"
 
-$(BUILD)/bootloader/stage2/stage2.bin: $(STAGE2_ASM_OBJECTS)
+$(OBJ)/bootloader/stage2/%.c.o: $(SRC)/bootloader/stage2/%.c
+	mkdir -p $(shell dirname '$@')
+	toolchain/x86_64-elf/bin/x86_64-elf-gcc -ffreestanding -fno-stack-protector -fno-stack-check -fno-lto -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mno-avx -mno-80387 -m64 -mno-red-zone -Wall -Wextra -Wpedantic -Werror -c "$<" -o "$@"
+
+$(BUILD)/bootloader/stage2/stage2.bin: $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS)
 	mkdir -p $(BUILD)/bootloader/stage2
-	toolchain/x86_64-elf/bin/x86_64-elf-ld -T"$(SRC)/bootloader/stage2/linker.ld" $(STAGE2_ASM_OBJECTS) -o $(BUILD)/bootloader/stage2/stage2.bin
+	toolchain/x86_64-elf/bin/x86_64-elf-ld -T"$(SRC)/bootloader/stage2/linker.ld" $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS) -o $(BUILD)/bootloader/stage2/stage2.bin
