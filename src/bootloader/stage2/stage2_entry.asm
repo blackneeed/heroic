@@ -102,7 +102,7 @@ protected_mode:
     mov cr0, eax                 ; Set control register 0 to the A-register.
 
     lgdt [gdt64]
-    jmp long_mode
+    jmp 0x08:long_mode
 .NoLongMode:
     mov byte [0xb8000], 'n'
     mov byte [0xb8002], 'o'
