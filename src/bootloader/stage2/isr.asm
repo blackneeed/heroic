@@ -14,6 +14,14 @@
     push rcx
     push rbx
     push rax
+    mov rax, cr0
+    push rax
+    mov rax, cr2
+    push rax
+    mov rax, cr3
+    push rax
+    mov rax, cr4
+    push rax
 %endmacro
 
 %macro popall 0
@@ -32,10 +40,12 @@
     pop r13
     pop r14
     pop r15
+    add rsp, 32
 %endmacro
 
 %macro isr_err_stub 1
 isr_stub_%+%1:
+    cli
     push qword %1
     cld
     pushall
@@ -43,15 +53,18 @@ isr_stub_%+%1:
     call isr_handler
     popall
     add rsp, 16
+    sti
     iretq
 %endmacro
 
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
+    cli
     push qword 0
     push qword %1
     cld
     pushall
+    mov rdi, rsp
     call isr_handler
     popall
     add rsp, 16
@@ -322,6 +335,6 @@ global isr_stub_table
 isr_stub_table:
 %assign i 0 
 %rep    256
-    dd isr_stub_%+i
+    dq isr_stub_%+i
 %assign i i+1 
 %endrep

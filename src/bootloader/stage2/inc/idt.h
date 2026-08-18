@@ -4,7 +4,7 @@
 
 #define INTERRUPT_GATE 0x8E
 
-extern void* isr_stub_table[];
+extern void* isr_stub_table[256];
 
 typedef struct _idtr {
     uint16_t limit;

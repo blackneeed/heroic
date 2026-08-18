@@ -3,6 +3,10 @@
 #include <stdint.h>
 
 typedef struct _interrupt_frame {
+    uint64_t cr4;
+    uint64_t cr3;
+    uint64_t cr2;
+    uint64_t cr0;
     uint64_t rax;
     uint64_t rbx;
     uint64_t rcx;
