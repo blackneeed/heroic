@@ -135,4 +135,3 @@ extern stage2_cmain
 
 long_mode:
     jmp stage2_cmain
-    ; unreachable

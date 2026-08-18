@@ -30,8 +30,8 @@ $(OBJ)/bootloader/stage2/%.asm.o: $(SRC)/bootloader/stage2/%.asm
 
 $(OBJ)/bootloader/stage2/%.c.o: $(SRC)/bootloader/stage2/%.c
 	mkdir -p $(shell dirname '$@')
-	toolchain/x86_64-elf/bin/x86_64-elf-gcc -ffreestanding -fno-stack-protector -fno-stack-check -fno-lto -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mno-avx -mno-80387 -m64 -mno-red-zone -Wall -Wextra -Wpedantic -Werror -c "$<" -o "$@"
+	gcc -ffreestanding -fno-stack-protector -fno-stack-check -fno-lto -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mno-avx -mno-80387 -m64 -mno-red-zone -Wall -Wextra -Wpedantic -Werror -c "$<" -o "$@"
 
 $(BUILD)/bootloader/stage2/stage2.bin: $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS)
 	mkdir -p $(BUILD)/bootloader/stage2
-	toolchain/x86_64-elf/bin/x86_64-elf-ld -T"$(SRC)/bootloader/stage2/linker.ld" $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS) -o $(BUILD)/bootloader/stage2/stage2.bin
+	ld -T"$(SRC)/bootloader/stage2/linker.ld" $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS) -o $(BUILD)/bootloader/stage2/stage2.bin
