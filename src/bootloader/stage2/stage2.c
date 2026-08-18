@@ -1,3 +1,7 @@
+#include <panic.h>
+#include <idt.h>
+
 void stage2_cmain() {
-    for (;;);
+    idt_init();
+    hcf();
 }

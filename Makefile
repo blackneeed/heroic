@@ -30,7 +30,7 @@ $(OBJ)/bootloader/stage2/%.asm.o: $(SRC)/bootloader/stage2/%.asm
 
 $(OBJ)/bootloader/stage2/%.c.o: $(SRC)/bootloader/stage2/%.c
 	mkdir -p $(shell dirname '$@')
-	gcc -ffreestanding -fno-stack-protector -fno-stack-check -fno-lto -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mno-avx -mno-80387 -m64 -mno-red-zone -Wall -Wextra -Wpedantic -Werror -c "$<" -o "$@"
+	gcc -I "$(SRC)/bootloader/stage2/inc" -ffreestanding -fno-stack-protector -fno-stack-check -fno-lto -mno-mmx -mno-sse -mno-sse2 -mno-red-zone -mno-avx -mno-80387 -m64 -mno-red-zone -Wall -Wextra -Wpedantic -Werror -c "$<" -o "$@"
 
 $(BUILD)/bootloader/stage2/stage2.bin: $(STAGE2_ASM_OBJECTS) $(STAGE2_C_OBJECTS)
 	mkdir -p $(BUILD)/bootloader/stage2
