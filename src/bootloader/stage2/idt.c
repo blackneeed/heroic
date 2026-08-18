@@ -1,12 +1,11 @@
 #include <stdint.h>
 #include <idt.h>
+#include <interrupts.h>
 
 static idtr_t idtr;
 
 __attribute__((aligned(0x10)))
 static idt_entry_t idt[256];
-
-extern void* isr_stub_table[];
 
 void lidt(idtr_t* descriptor) {
     asm volatile ("lidt %0" : : "m"(descriptor));
@@ -33,4 +32,5 @@ void idt_init() {
     }
 
     lidt(&idtr);
+    enable_interrupts();
 }

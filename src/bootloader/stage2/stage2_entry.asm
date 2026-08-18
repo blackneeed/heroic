@@ -1,5 +1,7 @@
 [bits 16]
 
+section .stage2_main
+
 global stage2_main
 stage2_main:
     ; switch to pm32
@@ -20,6 +22,8 @@ stage2_main:
 
     jmp 0x08:protected_mode
 
+section .data
+
 gdt32_entries:
     dq 0 ; null desc
     dq 0x00CF9A000000FFFF ; code desc
@@ -29,6 +33,8 @@ gdt32:
     dd gdt32_entries
 
 [bits 32]
+
+section .text
 
 protected_mode:
     mov ax, 0x10
