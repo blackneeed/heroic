@@ -26,14 +26,22 @@ stage2_main:
     je .memory_map_end ; if either ebx is zero or the carry is set the memory map is finished
     jc .memory_map_end
 
+    xor ch, ch
+    add di, cx
+
     cmp cl, 24 ; if cl is already 24 we dont need to add 4
     je .loop2
 
+    mov dword [di], 1
+
+    add di, 4
     add cl, 4
     .loop2:
-    add di, cl
+    add di, cx
     mov eax, 0x0000E820
     int 0x15
+
+    .memory_map_end:
 
     cli
 
