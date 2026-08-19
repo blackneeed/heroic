@@ -8,13 +8,15 @@ stage2_main:
 
     xor ax, ax
     mov es, ax
-    mov di, 0x7E00
-    mov cx, 256 ; words = 512 bytes
+    mov di, 0x7C00
+    mov cx, 384 ; words = 768 bytes - 0x7C00-0x8000
     rep stosw
 
-    ; 0x7e00-0x8000 is now a usable buffer for e820
+    clc
+
+    ; 0x7c00-0x7f00 is now a usable buffer for e820
     ; es is already zero
-    mov di, 0x7e00
+    mov di, 0x7c00
     xor ebx, ebx
     mov edx, 0x534D4150
     mov eax, 0x0000E820
@@ -22,24 +24,22 @@ stage2_main:
     int 0x15
 
     .loop:
+    jc .memory_map_end
     cmp ebx, 0
     je .memory_map_end ; if either ebx is zero or the carry is set the memory map is finished
-    jc .memory_map_end
-
-    xor ch, ch
-    add di, cx
 
     cmp cl, 24 ; if cl is already 24 we dont need to add 4
     je .loop2
 
-    mov dword [di], 1
+    mov dword [di + 20], 1
 
-    add di, 4
     add cl, 4
     .loop2:
+    xor ch, ch
     add di, cx
     mov eax, 0x0000E820
     int 0x15
+    jmp .loop
 
     .memory_map_end:
 
@@ -64,7 +64,7 @@ section .data
 gdt32_entries:
     dq 0 ; null desc
     dq 0x00CF9A000000FFFF ; code desc
-    dq 0x00CF92000000FFFF ; data desc
+    dq 0x00CF92000000FFFF ; data desc   
 gdt32:
     dw $ - gdt32_entries - 1
     dd gdt32_entries

@@ -11,7 +11,7 @@ STAGE2_C_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.c, $(OBJ)/bootloader/stag
 .PHONY: run clean
 
 run: $(BUILD)/floppy.img
-	qemu-system-x86_64 -fda $(BUILD)/floppy.img --no-shutdown --no-reboot
+	qemu-system-x86_64 -fda $(BUILD)/floppy.img --no-shutdown --no-reboot -m 64M
 
 run_debug: $(BUILD)/floppy.img
 	qemu-system-x86_64 -fda $(BUILD)/floppy.img --no-shutdown --no-reboot -d cpu_reset,guest_errors,int -monitor stdio

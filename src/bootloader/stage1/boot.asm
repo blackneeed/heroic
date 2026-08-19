@@ -55,10 +55,6 @@ print_uint:
 ; end dbg
 
 main:
-    mov ah, 0x0e
-    mov al, 'a'
-    int 0x10
-
     xor ax, ax
     mov ds, ax
     mov ss, ax
