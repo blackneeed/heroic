@@ -6,6 +6,35 @@ global stage2_main
 stage2_main:
     ; switch to pm32
 
+    xor ax, ax
+    mov es, ax
+    mov di, 0x7E00
+    mov cx, 256 ; words = 512 bytes
+    rep stosw
+
+    ; 0x7e00-0x8000 is now a usable buffer for e820
+    ; es is already zero
+    mov di, 0x7e00
+    xor ebx, ebx
+    mov edx, 0x534D4150
+    mov eax, 0x0000E820
+    mov ecx, 24
+    int 0x15
+
+    .loop:
+    cmp ebx, 0
+    je .memory_map_end ; if either ebx is zero or the carry is set the memory map is finished
+    jc .memory_map_end
+
+    cmp cl, 24 ; if cl is already 24 we dont need to add 4
+    je .loop2
+
+    add cl, 4
+    .loop2:
+    add di, cl
+    mov eax, 0x0000E820
+    int 0x15
+
     cli
 
     ; TODO: implement better A20 enabling.
