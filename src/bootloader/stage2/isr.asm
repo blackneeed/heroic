@@ -45,23 +45,18 @@
 
 %macro isr_err_stub 1
 isr_stub_%+%1:
-    cli
     push qword %1
-    cld
-    pushall
-    mov rdi, rsp
-    call isr_handler
-    popall
-    add rsp, 16
-    sti
-    iretq
+    jmp __isr_handler
 %endmacro
 
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
-    cli
     push qword 0
     push qword %1
+    jmp __isr_handler
+%endmacro
+
+__isr_handler:
     cld
     pushall
     mov rdi, rsp
@@ -69,7 +64,6 @@ isr_stub_%+%1:
     popall
     add rsp, 16
     iretq
-%endmacro
 
 extern isr_handler
 isr_no_err_stub 0

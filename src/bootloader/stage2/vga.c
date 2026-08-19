@@ -29,15 +29,29 @@ static inline void vga_text_mode_put(char character, uint8_t x, uint8_t y) {
 }
 
 void vga_text_mode_print(char character) {
-    vga_text_mode_put(character, __vga_text_mode_current_x, __vga_text_mode_current_y);
-    __vga_text_mode_current_x++;
-    if (__vga_text_mode_current_x >= 80) {
-        __vga_text_mode_current_x = 0;
-        __vga_text_mode_current_y++;
-        if (__vga_text_mode_current_y >= 25) {
-            vga_text_mode_clear();
-        }
+    switch (character) {
+        case '\b': if (__vga_text_mode_current_x) __vga_text_mode_current_x -= 1; break;
+        case '\n':
+            __vga_text_mode_current_y++;
+            if (__vga_text_mode_current_y >= 25) {
+                vga_text_mode_clear();
+                __vga_text_mode_current_y = 0;
+           }
+            break;
+        case '\r': __vga_text_mode_current_x = 0; break;
+        default:
+            vga_text_mode_put(character, __vga_text_mode_current_x, __vga_text_mode_current_y);
+            __vga_text_mode_current_x++;
+            if (__vga_text_mode_current_x >= 80) {
+                __vga_text_mode_current_x = 0;
+                __vga_text_mode_current_y++;
+                if (__vga_text_mode_current_y >= 25) {
+                    vga_text_mode_clear();
+                    __vga_text_mode_current_y = 0;
+                }
+            }
     }
+
 
     if (!__vga_more_chars) {
         vga_text_mode_set_cursor_pos(__vga_text_mode_current_x, __vga_text_mode_current_y);

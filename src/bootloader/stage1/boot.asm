@@ -55,6 +55,10 @@ print_uint:
 ; end dbg
 
 main:
+    mov ah, 0x0e
+    mov al, 'a'
+    int 0x10
+
     xor ax, ax
     mov ds, ax
     mov ss, ax
@@ -120,6 +124,13 @@ main:
 
     mov bx, 0x8000 ; loading it there
     .read_file_loop:
+    
+    ; IMPORTANT: This means a maximum 32 KiB file can be loaded by this!
+    cmp bx, 0xFFFF
+    je error
+    cmp bx, 0x8000
+    jl error
+
     mov ax, cx
     sub ax, 2
 
@@ -186,7 +197,6 @@ main:
     jae .file_read
     jmp .read_file_loop
     .file_read:
-
     jmp 0:0x8000
 
 print_string:

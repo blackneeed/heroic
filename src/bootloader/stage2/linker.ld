@@ -4,24 +4,24 @@ SECTIONS
 {
   . = 0x8000;
 
-  .text :
+  .text : ALIGN(0x1000)
   {
     KEEP(*(.stage2_main))
     *(.text .text.*)
   }
 
-  .data :
+  .data : ALIGN(0x1000)
   {
     *(.data .data.*)
   }
 
-  .rodata :
-  {
-    *(.rodata .rodata.*)
+  .rodata : ALIGN(0x1000) 
+  { 
+    *(.rodata .rodata.*) 
   }
 
-  .bss :
-  {
+  .bss : ALIGN(0x1000)
+  { 
     *(.bss .bss.*)
     *(COMMON)
   }
