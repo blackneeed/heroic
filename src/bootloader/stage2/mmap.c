@@ -32,7 +32,7 @@ void mmap_init(heroic_boot_protocol_data_t* boot_prot_data) {
 
         dprintf("entry %d: 0x%p-0x%p is %s\r\n", index, memory_map_entry->address, memory_map_entry->address + memory_map_entry->length, type_str);
 
-        // this just usually makes this struct be the structure that the boot protocol uses for mmap entries (uint64_t for type)
+        // this just makes this struct be the structure that the boot protocol uses for mmap entries (uint64_t for type)
         memory_map_entry->extended_attributes = memory_map_entry->type;
         memory_map_entry->type = 0;
 
