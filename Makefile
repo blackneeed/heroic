@@ -21,9 +21,9 @@ clean:
 
 $(BUILD)/floppy.img: clean $(BUILD)/bootloader/stage1/boot.bin $(BUILD)/bootloader/stage2/stage2.bin
 	dd if=/dev/zero of=$(BUILD)/floppy.img bs=512 count=2880
-	mkfs.fat -F 12 $(BUILD)/floppy.img
-	dd if=$(BUILD)/bootloader/stage1/boot.bin of=$(BUILD)/floppy.img conv=notrunc
-	mcopy -i $(BUILD)/floppy.img $(BUILD)/bootloader/stage2/stage2.bin "::stage2.bin"
+	mkfs.fat -F 12 -R 65 $(BUILD)/floppy.img
+	dd if=$(BUILD)/bootloader/stage1/boot.bin of=$(BUILD)/floppy.img bs=512 conv=notrunc
+	dd if=$(BUILD)/bootloader/stage2/stage2.bin of=$(BUILD)/floppy.img bs=512 seek=1 conv=notrunc
 	cp $(BUILD)/floppy.img floppy.img
 
 $(BUILD)/bootloader/stage1/boot.bin: $(SRC)/bootloader/stage1/boot.asm

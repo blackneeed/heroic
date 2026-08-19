@@ -6,7 +6,7 @@ bpb:
 .oem_name: db "MSWIN4.1"
 .bytes_per_sector: dw 512
 .sectors_per_cluster: db 1
-.reserved_sectors_count: dw 1
+.reserved_sectors_count: dw 65
 .fat_count: db 2
 .root_dir_entry_count: dw 0xE0
 .total_sectors: dw 2880
@@ -25,35 +25,6 @@ db 0
 .volume_label: db "HEROIC     "
 .file_system_type: db "FAT12   "
 
-ROOT_DIR_LBA:
-    dw 0
-
-DATA_LBA: dw 0
-
-; dbg
-print_uint:
-    mov bx, 10          ; divisor
-    xor cx, cx          ; digit count = 0
-
-.convert:
-    xor dx, dx
-    div bx              ; AX = AX / 10, DX = remainder
-    push dx             ; save digit
-    inc cx
-    test ax, ax
-    jnz .convert
-
-.print:
-    pop dx
-    add dl, '0'
-    mov ah, 0x0E
-    mov al, dl
-    int 0x10
-    loop .print
-
-    ret
-; end dbg
-
 main:
     xor ax, ax
     mov ds, ax
@@ -63,134 +34,19 @@ main:
     mov sp, 0x7c00
     mov [bpb.drive_number], dl
 
-    mov al, [bpb.fat_count] ; ah is 0 (first line of main)
-    mov bx, [bpb.sectors_per_fat]
-    mul bx
-
-    add ax, [bpb.reserved_sectors_count]
-    mov [ROOT_DIR_LBA], ax
-
-    mov ax, [bpb.root_dir_entry_count]
-    shl ax, 5 ; NOTE: assumes root dir entry count ≤ 2047
-
-    div word [bpb.bytes_per_sector]
-
-    cmp dx, 0
-    je .read_root_dir
-    add ax, 1
-
-    .read_root_dir:
-    mov bx, [ROOT_DIR_LBA]
-    add bx, ax
-    mov [DATA_LBA], bx
-
-    ; NOTE: we're loading the full root dir at 0x1000 which is ok for 224 root dir entries but not really for 2047
-    mov cl, al
-    mov ax, [ROOT_DIR_LBA]
-    ; es is 0 (first lines of main)
-    mov bx, 0x1000
-    call read_sectors
-
-    mov di, 0x1000
-    .find_file_loop:
-    mov si, stage2_name
-    mov cx, 11
-    push di
-    repe cmpsb
-    pop di
-    je .find_file_match
-
-    add di, 32
-    inc bx
-    cmp bx, [bpb.root_dir_entry_count]
-    jl .find_file_loop
-
-    jmp error
-    .find_file_match:
-    mov ax, [di + 26]
-    push ax
-    
-    mov cl, [bpb.sectors_per_fat]
-    mov ax, [bpb.reserved_sectors_count]
-    ; es is 0 (first lines of main)
-    mov bx, 0x1000
-    call read_sectors
-
-    pop cx
-
-    mov bx, 0x8000 ; loading it there
+    mov bx, 0x8000 ; IMPORTANT: This means a maximum 32 KiB file can be loaded by this!
+    mov ax, 1
     .read_file_loop:
-    
-    ; IMPORTANT: This means a maximum 32 KiB file can be loaded by this!
-    cmp bx, 0xFFFF
-    je error
-    cmp bx, 0x8000
-    jl error
+    cmp ax, 65
+    je .file_read
+    mov cl, 1
 
-    mov ax, cx
-    sub ax, 2
-
-    push dx
-    mul byte [bpb.sectors_per_cluster]
-    pop dx
-
-    add ax, [DATA_LBA]
-
-    push cx
-    mov cl, byte [bpb.sectors_per_cluster]
-    ; es & bx are set (es is zeroed in first lines of main)
+    push ax
     call read_sectors
-    pop cx
+    pop ax
 
-    mov ax, [bpb.bytes_per_sector]
-    mul word [bpb.sectors_per_cluster]
-    ; again discarding dx so clusters cant have more than 64k (if im not wrong)
-    mov dx, ax ; dx = bytes per cluster
-
-    add bx, dx
-
-    mov ax, cx
-    mov dx, 3
-    mul dx
-    ; r16*r16->r32
-
-    push bx
-    mov bx, 2
-    div bx
-    pop bx
-
-    ; r32/r16->r16
-
-    push ax ; index in fat on stack
-
-    push bx
-    mov ax, cx
-    mov bx, 2
-    div bx
-    pop bx
-
-    cmp dx, 0
-    jnz .read_file_odd_cluster_num
-    .read_file_even_cluster_num:
-    pop cx
-    push bx
-    mov bx, cx
-    add bx, 0x1000
-    mov cx, word [bx]  
-    and cx, 0xFFF
-    pop bx
-    jmp .read_file_after_recalc_cluster_num
-    .read_file_odd_cluster_num:
-    pop cx
-    push bx
-    mov bx, cx
-    add bx, 0x1000
-    mov cx, word [bx]  
-    shr cx, 4
-    pop bx
-    .read_file_after_recalc_cluster_num:
-    cmp cx, 0xFF8
-    jae .file_read
+    add ax, 1
+    add bx, 512
     jmp .read_file_loop
     .file_read:
     jmp 0:0x8000
