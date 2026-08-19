@@ -8,11 +8,15 @@ STAGE2_ASM_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.asm, $(OBJ)/bootloader/
 STAGE2_C_SOURCES=$(shell find $(SRC)/bootloader/stage2 -name '*.c')
 STAGE2_C_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.c, $(OBJ)/bootloader/stage2/%.c.o, $(STAGE2_C_SOURCES))
 
-.PHONY: run
+.PHONY: run clean
+
 run: $(BUILD)/floppy.img
 	qemu-system-x86_64 -fda $(BUILD)/floppy.img -monitor stdio -d cpu_reset,guest_errors,int --no-shutdown --no-reboot
 
-$(BUILD)/floppy.img: $(BUILD)/bootloader/stage1/boot.bin $(BUILD)/bootloader/stage2/stage2.bin
+clean:
+	rm -rf build obj floppy.img
+
+$(BUILD)/floppy.img: clean $(BUILD)/bootloader/stage1/boot.bin $(BUILD)/bootloader/stage2/stage2.bin
 	dd if=/dev/zero of=$(BUILD)/floppy.img bs=512 count=2880
 	mkfs.fat -F 12 $(BUILD)/floppy.img
 	dd if=$(BUILD)/bootloader/stage1/boot.bin of=$(BUILD)/floppy.img conv=notrunc

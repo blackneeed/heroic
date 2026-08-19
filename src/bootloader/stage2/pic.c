@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <portio.h>
 #include <pic.h>
-#include <print.h>
+#include <stdio.h>
 
 void pic_init() {
     pic_remap(32, 40);
@@ -33,6 +33,6 @@ void pic_mask_all(bool mask) {
     if (mask) val = 0xFF;
     outb(PIC1_DAT, val);
     outb(PIC2_DAT, val);
-    if (mask) dprint("disabled programmable interrupt controller\r\n");
-    else dprint("enabled programmable interrupt controller\r\n");
+    if (mask) dprintf("disabled programmable interrupt controller\r\n");
+    else dprintf("enabled programmable interrupt controller\r\n");
 }

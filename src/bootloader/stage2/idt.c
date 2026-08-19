@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <idt.h>
-#include <print.h>
+#include <stdio.h>
 #include <interrupts.h>
 
 static idtr_t idtr;
@@ -34,7 +34,7 @@ void idt_init() {
     }
 
     lidt(&idtr);
-    dprint("idtr loaded\r\n");
+    dprintf("idtr 0x%p loaded\r\n", &idtr);
     enable_interrupts();
-    dprint("interrupts enabled\r\n");
+    dprintf("interrupts enabled\r\n");
 }
