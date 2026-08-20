@@ -7,6 +7,8 @@ drive_number: db 0
 sectors_per_track: dw 0
 heads: dw 0
 
+edd_present: db 0
+
 main:
     xor ax, ax
     mov ds, ax
@@ -16,10 +18,25 @@ main:
     mov sp, 0x7c00
     mov [drive_number], dl
 
+    mov ah, 0x41
+    mov bx, 0x55aa
+    mov dl, [drive_number]
+    clc
+    int 0x13
+
+    jc .no_edd
+    cmp bx, 0xaa55
+    jne .no_edd
+
+    mov [edd_present], 1
+    jmp .read_file_edd
+
+    .no_edd:
     ; fill the drive geometry in
     mov ah, 8
     mov dl, [drive_number]
     int 0x13
+    jc error
 
     add dh, 1
     mov [heads], dh
@@ -27,6 +44,7 @@ main:
     and cl, 0x3f
     mov [sectors_per_track], cl
 
+    .read_file:
     mov bx, 0x8000 ; IMPORTANT: This means a maximum 32 KiB file can be loaded by this!
     mov ax, 1
     .read_file_loop:
@@ -41,6 +59,13 @@ main:
     add ax, 1
     add bx, 512
     jmp .read_file_loop
+    .read_file_edd:
+    clc
+    mov si, [dap_packet]
+    mov ah, 0x42
+    mov dl, [drive_number]
+    int 0x13
+    jc .no_edd
     .file_read:
     jmp 0:0x8000
 
@@ -95,8 +120,8 @@ read_sectors:
     mov dl, [drive_number]
     pusha
     int 0x13
-    popa
     jc error
+    popa
     ret
 
 error:
@@ -106,6 +131,14 @@ error:
 
 error_string: db "stage1 fail!", 0x0D, 0x0A, 0
 stage2_name: db "STAGE2  BIN"
+
+dap_packet:
+    db 0x10
+    db 0
+    dw 64 ; sector count
+    dw 0x8000 ; offset
+    dw 0 ; segment
+    dq 1 ; lba
 
 times 440-($-$$) db 0
 
