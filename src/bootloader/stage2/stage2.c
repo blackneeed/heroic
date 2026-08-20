@@ -9,8 +9,6 @@
 
 heroic_boot_protocol_data_t* boot_prot_data = (heroic_boot_protocol_data_t*)0x7f00;
 
-extern void mode_switch_test();
-
 void stage2_cmain() {
     vga_text_mode_clear();
     pic_mask_all(true);
