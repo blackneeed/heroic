@@ -18,7 +18,7 @@ typedef struct _heroic_boot_protocol_memory_map_entry {
 } heroic_boot_protocol_memory_map_entry_t;
 
 typedef struct _heroic_boot_protocol_data {
-    // DISCLAIMER: The memory range 0x7C00–0x8000 is reserved by Heroic only while this structure and/or it's contents are in use. After the kernel has finished consuming those, this range may be reclaimed as normal physical memory. 
+    // DISCLAIMER: The memory range 0x7C00–0xFFFF is reserved by Heroic only while this structure and/or it's contents are in use. After the kernel has finished consuming those, this range may be reclaimed as normal physical memory. 
     // This is not highlighted in the memory map.
 
     uint64_t magic; // Check if this is 0x8585AEAEEAEA5858ULL

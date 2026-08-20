@@ -52,7 +52,7 @@ stage2_main:
 
     lgdt [gdt32]
 
-    mov eax, cr0 
+    mov eax, cr0
     or al, 1
     mov cr0, eax
     ; set pe bit
@@ -63,11 +63,16 @@ section .data
 
 gdt32_entries:
     dq 0 ; null desc
-    dq 0x00CF9A000000FFFF ; code desc
-    dq 0x00CF92000000FFFF ; data desc   
+    dq 0x00CF9A000000FFFF ; 32-bit code desc
+    dq 0x00CF92000000FFFF ; 32-bit data desc
+    dq 0x008F9A000000FFFF ; 16-bit code desc
+    dq 0x008F92000000FFFF ; 16-bit data desc
+
 gdt32:
     dw $ - gdt32_entries - 1
     dd gdt32_entries
+
+global gdt32
 
 [bits 32]
 
@@ -172,9 +177,17 @@ gdt64:
     dw $ - gdt64_entries - 1
     dd gdt64_entries
     
+global gdt64
+
 [bits 64]
 
 extern stage2_cmain
 
 long_mode:
+    mov rsp, stack
     jmp stage2_cmain
+
+section .bss
+resb 4096
+stack:
+global stack
