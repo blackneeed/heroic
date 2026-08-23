@@ -67,6 +67,8 @@ main:
     int 0x13
     jc .no_edd
     .file_read:
+
+    mov dl, [drive_number]
     jmp 0:0x8000
 
 print_string:

@@ -1,9 +1,16 @@
 [bits 16]
 
+section .data
+global drive_number
+drive_number:
+    db 0
+
 section .stage2_main
 
 global stage2_main
 stage2_main:
+    mov [drive_number], dl
+
     ; switch to pm32
 
     xor ax, ax

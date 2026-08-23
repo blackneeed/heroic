@@ -75,4 +75,6 @@ void vga_text_mode_clear() {
             vga_text_mode_put(' ', x, y);
         }
     }
+    __vga_text_mode_current_x = 0;
+    __vga_text_mode_current_y = 0;
 }

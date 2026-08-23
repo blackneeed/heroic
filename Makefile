@@ -11,7 +11,7 @@ STAGE2_C_OBJECTS=$(patsubst $(SRC)/bootloader/stage2/%.c, $(OBJ)/bootloader/stag
 .PHONY: run_harddisk clean
 
 run_harddisk: $(BUILD)/harddisk.hda
-	qemu-system-x86_64 -hda $(BUILD)/harddisk.hda --no-shutdown --no-reboot -m 64M
+	qemu-system-x86_64 -hda $(BUILD)/harddisk.hda --no-shutdown --no-reboot -m 64M -d int
 
 clean:
 	rm -rf build obj
