@@ -22,14 +22,11 @@ run_harddisk: $(OUT)/$(NAME).img
 	-net none \
 	-drive file=$(OUT)/$(NAME).img,if=ide
 
-gnu-efi/x86_64/gnuefi/crt0-efi-x86_64.o:
-	make -C gnu-efi
-
 $(OBJ)/%.o: $(SRC)/%.c
 	mkdir -p $(shell dirname '$@')
 	gcc -Ignu-efi/inc -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -c "$<" -o "$@"
 
-$(OUT)/EFI_APP.so: gnu-efi/x86_64/gnuefi/crt0-efi-x86_64.o $(C_OBJ)
+$(OUT)/EFI_APP.so: $(C_OBJ)
 	mkdir -p $(shell dirname '$@')
 	ld -shared -Bsymbolic -Lgnu-efi/x86_64/lib -Lgnu-efi/x86_64/gnuefi -Tgnu-efi/gnuefi/elf_x86_64_efi.lds gnu-efi/x86_64/gnuefi/crt0-efi-x86_64.o $^ -o "$@" -lgnuefi -lefi
 
