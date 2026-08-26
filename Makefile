@@ -20,7 +20,8 @@ run_harddisk: $(OUT)/$(NAME).img
 	-drive if=pflash,format=raw,unit=0,file=$(OVMF_CODE),readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(OVMF_VARS) \
 	-net none \
-	-drive file=$(OUT)/$(NAME).img,if=ide
+	-drive file=$(OUT)/$(NAME).img \
+	-m 512M
 
 $(OBJ)/%.o: $(SRC)/%.c
 	mkdir -p $(shell dirname '$@')
