@@ -1,4 +1,2 @@
-main.efi
-main.o
-main.so
-uefi.img
+out
+obj
