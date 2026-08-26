@@ -1,6 +1,7 @@
 #include <efi.h>
 #include <efilib.h>
 
+// idk why i jumped straight to doing disk stuff
 EFI_STATUS GetVolume(EFI_HANDLE image, EFI_FILE_HANDLE *Volume)
 {
   EFI_LOADED_IMAGE *loaded_image = NULL;
@@ -15,20 +16,34 @@ EFI_STATUS GetVolume(EFI_HANDLE image, EFI_FILE_HANDLE *Volume)
   return Status; 
 }
 
+void wait_for_key(EFI_SYSTEM_TABLE *SystemTable) {
+    UINTN index;
+    EFI_INPUT_KEY key;
+
+    uefi_call_wrapper(
+        BS->WaitForEvent,
+        3,
+        1,
+        &SystemTable->ConIn->WaitForKey,
+        &index
+    );
+
+    uefi_call_wrapper(
+        SystemTable->ConIn->ReadKeyStroke,
+        2,
+        SystemTable->ConIn,
+        &key
+    );
+}
+
 EFI_STATUS
 EFIAPI
 efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     InitializeLib(ImageHandle, SystemTable);
 
-    EFI_FILE_HANDLE Volume;
-    EFI_STATUS Status = GetVolume(ImageHandle, &Volume);
-    
-    if (EFI_ERROR(Status)) {
-        Print(L"Failed to get volume\n");
-        return Status;
-    }
+    Print(L"Hello, World!\n");
 
-    Print(L"Got volume!\n");
-    
+    wait_for_key(SystemTable);
+
     return EFI_SUCCESS;
 }
