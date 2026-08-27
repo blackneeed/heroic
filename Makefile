@@ -15,7 +15,7 @@ C_OBJ=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(C_SRC))
 
 .PHONY: run_harddisk clean
 
-run_harddisk: $(OUT)/$(NAME).img
+run_harddisk: clean $(OUT)/$(NAME).img
 	qemu-system-x86_64 -cpu qemu64 \
 	-drive if=pflash,format=raw,unit=0,file=$(OVMF_CODE),readonly=on \
 	-drive if=pflash,format=raw,unit=1,file=$(OVMF_VARS) \
@@ -25,7 +25,7 @@ run_harddisk: $(OUT)/$(NAME).img
 
 $(OBJ)/%.o: $(SRC)/%.c
 	mkdir -p $(shell dirname '$@')
-	gcc -Ignu-efi/inc -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -c "$<" -o "$@"
+	gcc -Ignu-efi/inc -Isrc/inc -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -c "$<" -o "$@"
 
 $(OUT)/EFI_APP.so: $(C_OBJ)
 	mkdir -p $(shell dirname '$@')
@@ -35,7 +35,10 @@ $(OUT)/EFI_APP.efi: $(OUT)/EFI_APP.so
 	mkdir -p $(shell dirname '$@')
 	objcopy -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym  -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --output-target pei-x86-64 --subsystem=10 "$<" "$@"
 
-$(OUT)/$(NAME).img: $(OUT)/EFI_APP.efi
+test_kernel/main.elf:
+	make -C test_kernel compile
+
+$(OUT)/$(NAME).img: $(OUT)/EFI_APP.efi test_kernel/main.elf
 	mkdir -p $(shell dirname '$@')
 	
 	dd if=/dev/zero of="$@" bs=512 count=93750
@@ -47,7 +50,9 @@ $(OUT)/$(NAME).img: $(OUT)/EFI_APP.efi
 	mmd -i $(OUT)/$(NAME)_partition.img ::/EFI
 	mmd -i $(OUT)/$(NAME)_partition.img ::/EFI/BOOT
 	mcopy -i $(OUT)/$(NAME)_partition.img "$<" ::/EFI/BOOT/BOOTX64.EFI
+	mcopy -i $(OUT)/$(NAME)_partition.img test_kernel/main.elf ::/kernel.elf
 	dd if=$(OUT)/$(NAME)_partition.img of="$@" bs=512 count=91669 seek=2048 conv=notrunc
 
 clean:
 	rm -rf $(OBJ) $(OUT)
+	make -C test_kernel clean
