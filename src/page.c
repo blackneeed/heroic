@@ -7,11 +7,6 @@
 
 uint64_t *pml4;
 
-void SwitchCR3(uint64_t cr3) {
-    __asm__ volatile("mov %0, %%cr3" : : "r"(cr3));
-    __asm__ volatile("mov %%cr3, %%rax; mov %%rax, %%cr3" : : : "rax");
-}
-
 static inline uint64_t va_offset(uint64_t va) {
     return va & 0xFFFULL;
 }
