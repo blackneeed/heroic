@@ -5,6 +5,7 @@
 #define Present      (1ULL << 0)
 #define ReadWrite    (1ULL << 1)
 #define PageSize     (1ULL << 7)
+#define NoExecute    (1ULL << 63)
 #endif
 
 EFI_STATUS PageInit(uint64_t HighestPhysAddr);

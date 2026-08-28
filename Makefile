@@ -11,7 +11,10 @@ OVMF_CODE=ovmf/ovmf-code-x86_64.fd
 OVMF_VARS=ovmf/ovmf-vars-x86_64.fd
 
 C_SRC=$(shell find $(SRC) -name '*.c')
-C_OBJ=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(C_SRC))
+C_OBJ=$(patsubst $(SRC)/%.c, $(OBJ)/%.c.o, $(C_SRC))
+
+ASM_SRC=$(shell find $(SRC) -name '*.asm')
+ASM_OBJ=$(patsubst $(SRC)/%.asm, $(OBJ)/%.asm.o, $(ASM_SRC))
 
 .PHONY: run_harddisk clean
 
@@ -21,13 +24,18 @@ run_harddisk: clean $(OUT)/$(NAME).img
 	-drive if=pflash,format=raw,unit=1,file=$(OVMF_VARS) \
 	-net none \
 	-drive file=$(OUT)/$(NAME).img \
-	-m 512M
+	-m 512M \
+	-debugcon stdio
 
-$(OBJ)/%.o: $(SRC)/%.c
+$(OBJ)/%.c.o: $(SRC)/%.c
 	mkdir -p $(shell dirname '$@')
 	gcc -Ignu-efi/inc -Isrc/inc -fpic -ffreestanding -fno-stack-protector -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args -c "$<" -o "$@"
 
-$(OUT)/EFI_APP.so: $(C_OBJ)
+$(OBJ)/%.asm.o: $(SRC)/%.asm
+	mkdir -p $(shell dirname '$@')
+	nasm -f elf64 "$<" -o "$@"
+
+$(OUT)/EFI_APP.so: $(C_OBJ) $(ASM_OBJ)
 	mkdir -p $(shell dirname '$@')
 	ld -shared -Bsymbolic -Lgnu-efi/x86_64/lib -Lgnu-efi/x86_64/gnuefi -Tgnu-efi/gnuefi/elf_x86_64_efi.lds gnu-efi/x86_64/gnuefi/crt0-efi-x86_64.o $^ -o "$@" -lgnuefi -lefi
 

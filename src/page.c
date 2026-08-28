@@ -168,7 +168,7 @@ EFI_STATUS _MapPage(uint64_t VAddress, uint64_t Address, BOOLEAN multiple) {
         #endif
     }
 
-    pt[pt_index(VAddress)] = Address | Present | ReadWrite;
+    pt[pt_index(VAddress)] = (Address | Present | ReadWrite) & ~NoExecute;
     #if defined(PAGE_DEBUG_ALL)
     Print(L"[PAGE] MapPage: PTE %d set to 0x%lx (0x%lx -> 0x%lx) \r\n", pt_index(VAddress), Address, Address, VAddress);
     #else
@@ -213,7 +213,7 @@ EFI_STATUS _MapHugePage(uint64_t VAddress, uint64_t Address, BOOLEAN multiple) {
         #endif
     }
     
-    pd[pd_index(VAddress)] = Address | Present | ReadWrite | PageSize;
+    pd[pd_index(VAddress)] = (Address | Present | ReadWrite | PageSize) & ~NoExecute;
     #if defined(PAGE_DEBUG_ALL)
     Print(L"[PAGE] MapHugePage: PDE %d set to 0x%lx (0x%lx -> 0x%lx) \r\n", pd_index(VAddress), Address, Address, VAddress);
     #else
