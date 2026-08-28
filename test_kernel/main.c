@@ -1,3 +1,3 @@
-const char* kernel_start() {
-    return "Hello World from Kernel!";
+int kernel_start() {
+    return 69692137;
 }

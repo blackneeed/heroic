@@ -39,11 +39,7 @@ EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume, uint16_t *FileName, char **Buffer, u
         return Status;
     }
 
-    Print(L"[DISK] Opened file: %s\r\n", FileName);
-
     *ReadSize = FileSize(FileHandle);
-
-    Print(L"[DISK] Size of file %s: %lu bytes\r\n", FileName, *ReadSize);
 
     Status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, *ReadSize, (void**)Buffer);
 

@@ -10,13 +10,7 @@ EFI_STATUS FetchMemoryMap(EFI_MEMORY_DESCRIPTOR** Map, uint64_t* MapSize, uint64
     Status = uefi_call_wrapper(BS->GetMemoryMap, 5, MapSize, NULL, MapKey, DescriptorSize, DescriptorVersion);
     if (Status != EFI_BUFFER_TOO_SMALL) return Status;
 
-    Print(L"[MMAP] MapSize: %lu\r\n", *MapSize);
-    Print(L"[MMAP] DescriptorSize: %lu\r\n", *DescriptorSize);
-
-    *MapSize += 2 * (*DescriptorSize); // just to be safe because we are doing a allocation to get the memory map and that may split an entry
-
-    Print(L"[MMAP] New MapSize: %lu\r\n", *MapSize);
-
+    *MapSize += *DescriptorSize * 2;
 
     Status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, *MapSize, (void**)Map);
     if (EFI_ERROR(Status)) return Status;
