@@ -27,7 +27,9 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
         return Status;
     }
 
-    uint64_t HighestPhysAddr, CurrMapOffset, CurrMapIndex = 0;
+    uint64_t HighestPhysAddr = 0;
+    uint64_t CurrMapOffset = 0;
+    uint64_t CurrMapIndex = 0;
 
     for (; CurrMapOffset < MapSize; CurrMapOffset += DescriptorSize) {
         uint64_t HighestPhysAddrOfEntry = Map[CurrMapIndex].PhysicalStart + Map[CurrMapIndex].NumberOfPages * 0x1000;
@@ -119,7 +121,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
         "jmp *%[target]\n\t"
         :
         : [pml4] "r"((uint64_t)pml4),
-          [boot_prot_data] "r"((uint64_t)BootProtocolData),
+          [boot_prot_data] "r"(BootProtocolData->hhdm + (uint64_t)BootProtocolData),
           [kernel_entry] "r"((uint64_t)KernelEntry),
           [target]  "r"((uint64_t)TransitionPageAddress)
         : "rax", "rbx", "rcx", "memory"

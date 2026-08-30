@@ -61,7 +61,11 @@ EFI_STATUS LoadELF(void* Buffer_, void** EntryPoint) {
             memcpy((void*)(Address + PageOffset), (void*)&Buffer[Phdr->p_offset], Phdr->p_filesz); // cp filesz bytes from the file
             memset((void*)(Address + PageOffset + Phdr->p_filesz), 0, Phdr->p_memsz - Phdr->p_filesz); // zero out the extra memsz bytes
 
-            MapPages(VAddress, Address, PageCount);
+            Status = MapPages(VAddress, Address, PageCount);
+            if (EFI_ERROR(Status)) {
+                Print(L"[ELF ] MapPages failed with %r\r\n", Status);
+                return Status;
+            }
         }
 
         Phdr++;
