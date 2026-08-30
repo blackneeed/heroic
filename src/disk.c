@@ -1,38 +1,55 @@
 #include <efi.h>
 #include <efilib.h>
 
-EFI_STATUS GetVolume(EFI_HANDLE image, EFI_FILE_HANDLE *Volume)
+EFI_STATUS GetVolume(EFI_HANDLE ImageHandle, EFI_FILE_HANDLE *Volume)
 {
-    EFI_LOADED_IMAGE *loaded_image = NULL;
-    EFI_GUID lipGuid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
+    EFI_STATUS Status;
 
-    EFI_STATUS Status = uefi_call_wrapper(BS->HandleProtocol, 3, image, &lipGuid, (void **) &loaded_image); // get loaded image protocol
+    EFI_LOADED_IMAGE *LoadedImage = NULL;
+    EFI_GUID LoadedImageProtocolGUID = EFI_LOADED_IMAGE_PROTOCOL_GUID;
+
+    Status = uefi_call_wrapper(BS->HandleProtocol,
+        3,
+        ImageHandle,
+        &LoadedImageProtocolGUID,
+        (void**)&LoadedImage);
+    
     if (EFI_ERROR(Status)) {
+        Print(L"[DISK] GetVolume: HandleProtocol failed with %r\r\n", Status);
         return Status;
     }
 
-    *Volume = LibOpenRoot(loaded_image->DeviceHandle); // get volume handle
+    *Volume = LibOpenRoot(LoadedImage->DeviceHandle);
 
     return Status; 
 }
 
-uint64_t FileSize(EFI_FILE_HANDLE FileHandle)
+UINTN FileSize(EFI_FILE_HANDLE FileHandle)
 {
-    uint64_t ret;
+    UINTN Size;
     EFI_FILE_INFO *FileInfo;
 
     FileInfo = LibFileInfo(FileHandle);
-    ret = FileInfo->FileSize;
+    Size = FileInfo->FileSize;
 
     FreePool(FileInfo);
 
-    return ret;
+    return Size;
 }
 
-EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume, uint16_t *FileName, char **Buffer, uint64_t *ReadSize)
+EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume,
+    UINT16 *FileName,
+    UINT8 **Buffer,
+    UINTN *ReadSize)
 {
     EFI_FILE_HANDLE FileHandle;
-    EFI_STATUS Status = uefi_call_wrapper(Volume->Open, 5, Volume, &FileHandle, FileName, EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
+    EFI_STATUS Status = uefi_call_wrapper(Volume->Open,
+        5,
+        Volume,
+        &FileHandle,
+        FileName,
+        EFI_FILE_MODE_READ,
+        EFI_FILE_READ_ONLY | EFI_FILE_HIDDEN | EFI_FILE_SYSTEM);
 
     if (EFI_ERROR(Status)) {
         Print(L"[DISK] Open failed with %r!\r\n", Status);
@@ -41,14 +58,23 @@ EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume, uint16_t *FileName, char **Buffer, u
 
     *ReadSize = FileSize(FileHandle);
 
-    Status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, *ReadSize, (void**)Buffer);
+    Status = uefi_call_wrapper(BS->AllocatePool,
+        3,
+        EfiLoaderData,
+        *ReadSize,
+        (void**)Buffer);
 
     if (EFI_ERROR(Status)) {
-        Print(L"[DISK] AllocatePool failed with %r (attempt to allocate %lu bytes as a buffer for file %s)!\r\n", Status, *ReadSize, FileName);
+        Print(L"[DISK] AllocatePool failed with %r!\r\n", Status);
         return Status;
     }
 
-    Status = uefi_call_wrapper(FileHandle->Read, 3, FileHandle, ReadSize, *Buffer);
+    Status = uefi_call_wrapper(FileHandle->Read,
+        3,
+        FileHandle,
+        ReadSize,
+        *Buffer);
+
     if (EFI_ERROR(Status)) {
         Print(L"[DISK] Read failed with %r!\r\n", Status);
         return Status;

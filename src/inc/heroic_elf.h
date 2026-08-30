@@ -1,4 +1,4 @@
 #include <efi.h>
 #pragma once
 
-EFI_STATUS LoadELF(void* Buffer, void** EntryPoint);
+EFI_STATUS LoadELF(char* Buffer, void** EntryPoint);

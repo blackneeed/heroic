@@ -4,62 +4,77 @@
 #include <string.h>
 #include <page.h>
 
-EFI_STATUS LoadELF(void* Buffer_, void** EntryPoint) {
-    char* Buffer = (char*)Buffer_;
+EFI_STATUS LoadELF(char* Buffer, void** EntryPoint) {
     EFI_STATUS Status;
-    Elf64_Ehdr* hdr = Buffer_;
+    Elf64_Ehdr* Header = (Elf64_Ehdr*)Buffer;
 
-    if (hdr->e_ident[EI_MAG0] != ELFMAG0 || 
-        hdr->e_ident[EI_MAG1] != ELFMAG1 ||
-        hdr->e_ident[EI_MAG2] != ELFMAG2 ||
-        hdr->e_ident[EI_MAG3] != ELFMAG3) {
+    if (Header->e_ident[EI_MAG0] != ELFMAG0 || 
+        Header->e_ident[EI_MAG1] != ELFMAG1 ||
+        Header->e_ident[EI_MAG2] != ELFMAG2 ||
+        Header->e_ident[EI_MAG3] != ELFMAG3) {
         Print(L"[ELF ] Kernel file is not a valid ELF file\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    if (hdr->e_ident[EI_CLASS] != ELFCLASS64) {
+    if (Header->e_ident[EI_CLASS] != ELFCLASS64) {
         Print(L"[ELF ] Kernel ELF is 32-bit while heroic is 64-bit\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    if (hdr->e_ident[EI_DATA] != ELFDATA2LSB) {
+    if (Header->e_ident[EI_DATA] != ELFDATA2LSB) {
         Print(L"[ELF ] Kernel ELF is MSB\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    if (hdr->e_type != ET_EXEC) {
+    if (Header->e_type != ET_EXEC) {
         Print(L"[ELF ] Kernel ELF is not executable\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    if (hdr->e_machine != EM_X86_64) {
+    if (Header->e_machine != EM_X86_64) {
         Print(L"[ELF ] Kernel ELF is not compiled for x86_64\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    if (hdr->e_version != EV_CURRENT) {
+    if (Header->e_version != EV_CURRENT) {
         Print(L"[ELF ] Kernel ELF has an old ELF version\r\n");
         return EFI_LOAD_ERROR;
     }
 
-    Elf64_Phdr* Phdr = (Elf64_Phdr*)&Buffer[hdr->e_phoff];
+    Elf64_Phdr* ProgramHeader = (Elf64_Phdr*)&Buffer[Header->e_phoff];
 
-    while ((uint64_t)Phdr - (uint64_t)&Buffer[hdr->e_phoff] < hdr->e_phentsize * hdr->e_phnum) {
-        if (Phdr->p_type == PT_LOAD) {
-            uint64_t PageOffset = Phdr->p_vaddr & 0xFFF;
-            int PageCount = (PageOffset + Phdr->p_memsz + 0xFFF) / 0x1000;
+    while ((UINTN)ProgramHeader -
+           (UINTN)&Buffer[Header->e_phoff] <
+           Header->e_phentsize *
+           Header->e_phnum) {
+        if (ProgramHeader->p_type == PT_LOAD) {
+            EFI_VIRTUAL_ADDRESS VAddress = ALIGN_DOWN_4KB(ProgramHeader->p_vaddr);
+            UINTN PageOffset = ProgramHeader->p_vaddr - VAddress;
+            UINTN PageCount = ALIGN_UP_4KB(PageOffset + ProgramHeader->p_memsz) / 0x1000;
 
-            uint64_t VAddress = Phdr->p_vaddr & ~0xFFF;
-            uint64_t Address = 0;
+            EFI_PHYSICAL_ADDRESS PAddress = 0;
 
-            Status = uefi_call_wrapper(BS->AllocatePages, 4, AllocateAnyPages, EfiLoaderData, PageCount, &Address);
+            Status = uefi_call_wrapper(BS->AllocatePages,
+                4,
+                AllocateAnyPages,
+                EfiLoaderData,
+                PageCount,
+                &PAddress);
+
+            EFI_PHYSICAL_ADDRESS Address = PAddress + PageOffset;
+
             if (EFI_ERROR(Status)) {
-                Print(L"[ELF ] Could not allocate pages for Phdr\r\n");
+                Print(L"[ELF ] Could not allocate Program Header\r\n");
                 return Status;
             }
 
-            memcpy((void*)(Address + PageOffset), (void*)&Buffer[Phdr->p_offset], Phdr->p_filesz); // cp filesz bytes from the file
-            memset((void*)(Address + PageOffset + Phdr->p_filesz), 0, Phdr->p_memsz - Phdr->p_filesz); // zero out the extra memsz bytes
+            memcpy((void*)Address,
+                   &Buffer[ProgramHeader->p_offset],
+                   ProgramHeader->p_filesz);
+
+            memset((void*)Address + ProgramHeader->p_filesz,
+                   0,
+                   ProgramHeader->p_memsz - ProgramHeader->p_filesz);
 
             Status = MapPages(VAddress, Address, PageCount);
             if (EFI_ERROR(Status)) {
@@ -68,11 +83,11 @@ EFI_STATUS LoadELF(void* Buffer_, void** EntryPoint) {
             }
         }
 
-        Phdr++;
+        ProgramHeader++;
     }
 
-    Print(L"[ELF ] Successfully loaded Kernel. Entry point: 0x%016lx\r\n", hdr->e_entry);
+    Print(L"[ELF ] Successfully loaded Kernel. Entry point: 0x%016lx\r\n", Header->e_entry);
 
-    *EntryPoint = (void*)hdr->e_entry;
+    *EntryPoint = (void*)Header->e_entry;
     return EFI_SUCCESS;
 }

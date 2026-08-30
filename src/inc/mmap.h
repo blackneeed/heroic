@@ -1,4 +1,12 @@
 #include <efi.h>
 #include <efilib.h>
 
-EFI_STATUS FetchMemoryMap(EFI_MEMORY_DESCRIPTOR** Map, uint64_t* MapSize, uint64_t* MapKey, uint64_t* DescriptorSize, uint32_t* DescriptorVersion);
+EFI_STATUS FetchMemoryMap(EFI_MEMORY_DESCRIPTOR** Map,
+    UINTN* MapSize,
+    UINTN* MapKey,
+    UINTN* DescriptorSize,
+    UINT32* DescriptorVersion);
+
+EFI_PHYSICAL_ADDRESS GetHighestPhysicalAddress(UINTN MapSize,
+    UINTN DescriptorSize,
+    EFI_MEMORY_DESCRIPTOR* Map);

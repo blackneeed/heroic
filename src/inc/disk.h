@@ -2,6 +2,9 @@
 #include <efi.h>
 #include <efilib.h>
 
-EFI_STATUS GetVolume(EFI_HANDLE image, EFI_FILE_HANDLE *Volume);
-uint64_t FileSize(EFI_FILE_HANDLE FileHandle);
-EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume, uint16_t *FileName, char **Buffer, uint64_t *ReadSize);
+EFI_STATUS GetVolume(EFI_HANDLE ImageHandle, EFI_FILE_HANDLE *Volume);
+UINTN FileSize(EFI_FILE_HANDLE FileHandle);
+EFI_STATUS ReadFile(EFI_FILE_HANDLE Volume,
+    UINT16 *FileName,
+    UINT8 **Buffer,
+    UINTN *ReadSize);
