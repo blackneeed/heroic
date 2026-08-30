@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <efi.h>
+
 #ifdef PAGE_C_IMPL
 #define Present      (1ULL << 0)
 #define ReadWrite    (1ULL << 1)
@@ -25,6 +26,7 @@ typedef UINT64 PAGE_ENTRY;
 
 #define HHDM_BASE 0xFFFF800000000000
 
+extern PAGE_ENTRY *PML4;
 
 EFI_STATUS PageInit    (EFI_PHYSICAL_ADDRESS HighestPhysAddr);
 EFI_STATUS MapPage     (EFI_VIRTUAL_ADDRESS VAddress, EFI_PHYSICAL_ADDRESS Address);

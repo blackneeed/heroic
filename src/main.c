@@ -7,7 +7,6 @@
 #include <kernel_load.h>
 #include <string.h>
 
-extern PAGE_ENTRY *PML4;
 extern char transition_start[];
 extern char transition_end[];
 
