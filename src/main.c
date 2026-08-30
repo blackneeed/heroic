@@ -2,8 +2,8 @@
 #include <efilib.h>
 #include <mmap.h>
 #include <boot_protocol.h>
-#include <heroic_elf.h>
 #include <page.h>
+#include <gop.h>
 #include <kernel_load.h>
 #include <string.h>
 
@@ -39,6 +39,25 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
     Status = PageInit(HighestPhysicalAddress);
     if (EFI_ERROR(Status)) {
         Print(L"[PAGE] PageInit failed with %r!\r\n", Status);
+        return Status;
+    }
+
+    EFI_GRAPHICS_OUTPUT_PROTOCOL* GOP;
+
+    Status = GetGOP(&GOP);
+
+    if (EFI_ERROR(Status)) {
+        Print(L"[GOP ] GetGOP failed with %r\r\n", Status);
+        return Status;
+    }
+
+    UINTN NativeMode;
+    UINTN ModeCount;
+
+    Status = QueryModeInfo(GOP, &NativeMode, &ModeCount);
+
+    if (EFI_ERROR(Status)) {
+        Print(L"[GOP ] QueryModeInfo failed with %r\r\n", Status);
         return Status;
     }
 
