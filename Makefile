@@ -5,6 +5,7 @@ CC=gcc
 LD=ld
 OBJCOPY=objcopy
 QEMU=qemu-system-x86_64
+QEMUUSERFLAGS=
 NAME=heroic
 
 OVMF_CODE=ovmf/ovmf-code-x86_64.fd
@@ -16,7 +17,7 @@ C_OBJ=$(patsubst $(SRC)/%.c, $(OBJ)/%.c.o, $(C_SRC))
 ASM_SRC=$(shell find $(SRC) -name '*.asm')
 ASM_OBJ=$(patsubst $(SRC)/%.asm, $(OBJ)/%.asm.o, $(ASM_SRC))
 
-.PHONY: run_harddisk clean
+.PHONY: run_harddisk clean setup
 
 run_harddisk: clean $(OUT)/$(NAME).img
 	qemu-system-x86_64 -cpu qemu64 \
@@ -25,7 +26,12 @@ run_harddisk: clean $(OUT)/$(NAME).img
 	-net none \
 	-drive file=$(OUT)/$(NAME).img \
 	-m 512M \
-	-debugcon stdio
+	-debugcon stdio \
+	$(QEMUUSERFLAGS)
+
+setup:
+	$(MAKE) -C gnu-efi
+	bear -- $(MAKE) $(OUT)/$(NAME).img
 
 $(OBJ)/%.c.o: $(SRC)/%.c
 	mkdir -p $(shell dirname '$@')

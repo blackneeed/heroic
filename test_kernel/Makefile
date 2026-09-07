@@ -1,7 +1,7 @@
 .PHONY: compile clean
 
 compile:
-	gcc -ffreestanding -mno-red-zone -fshort-wchar -c main.c -o main.o
+	gcc -ffreestanding -mno-red-zone -fshort-wchar -c main.c -o main.o -mcmodel=kernel
 	nasm -f elf64 main.asm -o main.asm.o
 	ld -T linker.ld -static -nostdlib -o main.elf main.o main.asm.o
 

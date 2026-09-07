@@ -2,4 +2,7 @@
 
 This is the UEFI branch of Heroic.
 
-Before first compiling with make, run "make -C gnu-efi"
+Setup:
+    Install build-essenial, mtools, gcc, qemu, parted, nasm, 
+    Run git submodule update --init (if repo was cloned without --recursive flag)
+    Run make setup
