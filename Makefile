@@ -64,7 +64,8 @@ $(OUT)/$(NAME).img: $(OUT)/EFI_APP.efi test_kernel/main.elf
 	mmd -i $(OUT)/$(NAME)_partition.img ::/EFI
 	mmd -i $(OUT)/$(NAME)_partition.img ::/EFI/BOOT
 	mcopy -i $(OUT)/$(NAME)_partition.img "$<" ::/EFI/BOOT/BOOTX64.EFI
-	mcopy -i $(OUT)/$(NAME)_partition.img test_kernel/main.elf ::/kernel.elf
+	mcopy -i $(OUT)/$(NAME)_partition.img test_kernel/main.elf ::/test_kernel.elf
+	mcopy -i $(OUT)/$(NAME)_partition.img test_kernel/heroic.cfg ::/heroic.cfg
 	dd if=$(OUT)/$(NAME)_partition.img of="$@" bs=512 count=91669 seek=2048 conv=notrunc
 
 clean:
