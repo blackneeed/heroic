@@ -9,22 +9,22 @@ EFI_STATUS LoadKernel(EFI_HANDLE ImageHandle, UINT16* FileName, void** KernelEnt
     Status = GetVolume(ImageHandle, &Volume);
 
     if (EFI_ERROR(Status)) {
-        Print(L"[DISK] GetVolume failed with %r!\r\n", Status);
+        Print(L"[KRLD] GetVolume failed with %r!\r\n", Status);
         return Status;
     }
     
     UINT8* Buffer;
-    uint64_t ReadSize;
+    UINTN ReadSize;
 
     Status = ReadFile(Volume, FileName, &Buffer, &ReadSize);
     if (EFI_ERROR(Status)) {
-        Print(L"[DISK] ReadFile failed with %r!\r\n", Status);
+        Print(L"[KRLD] ReadFile failed with %r!\r\n", Status);
         return Status;
     }
 
     Status = LoadELF(Buffer, KernelEntry);
     if (EFI_ERROR(Status)) {
-        Print(L"[ELF] LoadELF failed with %r!\r\n", Status);
+        Print(L"[KRLD] LoadELF failed with %r!\r\n", Status);
         return Status;
     }
 

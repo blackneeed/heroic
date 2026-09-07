@@ -4,6 +4,7 @@
 #include <boot_protocol.h>
 #include <page.h>
 #include <gop.h>
+#include <cfg_parser.h>
 #include <kernel_load.h>
 #include <string.h>
 
@@ -42,6 +43,12 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
         return Status;
     }
 
+    Status = LoadConfig(ImageHandle, L"heroic.cfg");
+    if (EFI_ERROR(Status)) {
+        Print(L"[CFG ] LoadConfig failed with %r!\r\n", Status);
+        return Status;
+    }
+
     EFI_GRAPHICS_OUTPUT_PROTOCOL* GOP;
 
     Status = GetGOP(&GOP);
@@ -53,17 +60,25 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 
     UINTN NativeMode;
     UINTN ModeCount;
+    BOOLEAN GopFailed;
 
     Status = QueryModeInfo(GOP, &NativeMode, &ModeCount);
 
     if (EFI_ERROR(Status)) {
         Print(L"[GOP ] QueryModeInfo failed with %r\r\n", Status);
-        return Status;
+        GopFailed = TRUE;
+        goto skip_gop;
     }
+
+    skip_gop:
 
     void *KernelEntry;
 
-    LoadKernel(ImageHandle, L"kernel.elf", &KernelEntry);
+    Status = LoadKernel(ImageHandle, L"kernel.elf", &KernelEntry);
+    if (EFI_ERROR(Status)) {
+        Print(L"[LOAD] LoadKernel failed with %r\r\n", Status);
+        return Status;
+    }
 
     heroic_boot_protocol_data_t* BootProtocolData;
 
@@ -97,7 +112,6 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
     BootProtocolData->memory_map = (uint64_t)Map;
     BootProtocolData->memory_map_size = MapSize;
     BootProtocolData->memory_map_descriptor_size = DescriptorSize;
-
     
     Status = uefi_call_wrapper(BS->ExitBootServices, 2, ImageHandle, MapKey);
     if (EFI_ERROR(Status)) {
